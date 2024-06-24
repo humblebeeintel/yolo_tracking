@@ -52,3 +52,7 @@ boxmot/motion/cmc/*.jpg
 
 datasets/
 myenv/
+MOT17/
+MOT20
+viz_MOT17/
+viz_MOT20/
