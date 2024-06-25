@@ -31,12 +31,12 @@ def send_email(subject, body, to_email, from_email, smtp_server, smtp_port, smtp
 
 if __name__ == "__main__":
     # Email configuration
-    TO_EMAIL = 'your_email@gmail.com'
-    FROM_EMAIL = 'your_email@gmail.com'
+    TO_EMAIL = 'dilshod.profile@gmail.com'
+    FROM_EMAIL = 'dilshod.profile@gmail.com'
     SMTP_SERVER = 'smtp.gmail.com'
     SMTP_PORT = 587
-    SMTP_USER = 'your_email@gmail.com'
-    SMTP_PASSWORD = 'your_app_password'  # Use an app-specific password
+    SMTP_USER = 'dilshod.profile@gmail.com'
+    SMTP_PASSWORD = 'liozbpjdoisbyxbt'  # Use an app-specific password
 
     # Loop to continuously monitor GPU usage
     while True:
@@ -46,4 +46,4 @@ if __name__ == "__main__":
             send_email(subject, body, TO_EMAIL, FROM_EMAIL, SMTP_SERVER, SMTP_PORT, SMTP_USER, SMTP_PASSWORD)
 
         # Wait for 10 minutes before checking again (adjust as needed)
-        time.sleep(600)  # 600 seconds = 10 minutes
+        time.sleep(3600)  # 600 seconds = 10 minutes
