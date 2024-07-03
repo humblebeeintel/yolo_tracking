@@ -56,6 +56,11 @@ MOT17/
 MOT20/
 PersonPath22/
 VIRAT-S/
+PersonPath22_.25/
+MOT17-train/
+KITTI/
+
+MOT20_.25__cmc_off
 
 viz_MOT17/
 viz_MOT20/

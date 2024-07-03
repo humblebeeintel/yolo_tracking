@@ -35,7 +35,9 @@ def on_predict_start(predictor, persist=False):
     assert predictor.custom_args.tracking_method in TRACKERS, \
         f"'{predictor.custom_args.tracking_method}' is not supported. Supported ones are {TRACKERS}"
 
+    # 
     tracking_config = TRACKER_CONFIGS / (predictor.custom_args.tracking_method + '.yaml')
+    print(f'\nUsing tracking config: {tracking_config}\n')
     trackers = []
     for i in range(predictor.dataset.bs):
         tracker = create_tracker(
@@ -61,7 +63,7 @@ def run(args):
         args.yolo_model if 'yolov8' in str(args.yolo_model) else 'yolov8n.pt',
         #device=args.device
     )
-    yolo.to(args.device)
+    #yolo.to(args.device)
 
     results = yolo.track(
         source=args.source,
@@ -101,7 +103,7 @@ def run(args):
     yolo.predictor.custom_args = args
 
     for r in results:
-
+        # print(f'r: {r}')
         img = yolo.predictor.trackers[0].plot_results(r.orig_img, args.show_trajectories)
 
         if args.show is True:
@@ -123,7 +125,7 @@ def parse_opt():
                         help='file/dir/URL/glob, 0 for webcam')
     parser.add_argument('--imgsz', '--img', '--img-size', nargs='+', type=int, default=[1280],
                         help='inference size h,w')
-    parser.add_argument('--conf', type=float, default=0.25,
+    parser.add_argument('--conf', type=float, default=0.25, # confidence threshold
                         help='confidence threshold')
     parser.add_argument('--iou', type=float, default=0.7,
                         help='intersection over union (IoU) threshold for NMS')
@@ -160,7 +162,7 @@ def parse_opt():
                         help='The line width of the bounding boxes. If None, it is scaled to the image size.')
     parser.add_argument('--per-class', default=False, action='store_true',
                         help='not mix up classes when tracking')
-    parser.add_argument('--verbose', default=False, action='store_true',
+    parser.add_argument('--verbose', default=True, action='store_true',
                         help='print results per frame')
     parser.add_argument('--agnostic-nms', default=False, action='store_true',
                         help='class-agnostic NMS')

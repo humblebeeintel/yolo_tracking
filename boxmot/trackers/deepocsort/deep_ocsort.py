@@ -322,7 +322,7 @@ class DeepOCSort(BaseTracker):
         alpha_fixed_emb=0.95,
         aw_param=0.5,
         embedding_off=False,
-        cmc_off=False,
+        cmc_off=True,
         aw_off=False,
         new_kf_off=False,
         **kwargs
@@ -343,6 +343,12 @@ class DeepOCSort(BaseTracker):
         self.aw_param = aw_param
         self.per_class = per_class
         KalmanBoxTracker.count = 1
+
+
+        print(f'\nTracker det_thresh {det_thresh}')
+        print(f'Tracker self.det_thresh {self.det_thresh}')
+        print(f'Tracker min_hits {min_hits}')
+        print(f'Tracker self.min_hits {self.min_hits}\n')
 
         rab = ReidAutoBackend(
             weights=model_weights, device=device, half=fp16
@@ -379,6 +385,7 @@ class DeepOCSort(BaseTracker):
         dets = np.hstack([dets, np.arange(len(dets)).reshape(-1, 1)])
         assert dets.shape[1] == 7
         remain_inds = scores > self.det_thresh
+        print(f'\nTracker self.det_thresh {self.det_thresh}\n')
         dets = dets[remain_inds]
 
         # appearance descriptor extraction
@@ -392,6 +399,7 @@ class DeepOCSort(BaseTracker):
 
         # CMC
         if not self.cmc_off:
+            print(f'\nUsing CMC\n')
             transform = self.cmc.apply(img, dets[:, :4])
             for trk in self.active_tracks:
                 trk.apply_affine_correction(transform)
@@ -513,9 +521,26 @@ class DeepOCSort(BaseTracker):
                 we didn't notice significant difference here
                 """
                 d = trk.last_observation[:4]
-            if (trk.time_since_update < 1) and (trk.hit_streak >= self.min_hits or self.frame_count <= self.min_hits):
+            
+            # print(f'\n trk.time_since_update: {trk.time_since_update}')
+            # print(f'trk.hit_streak {trk.hit_streak}')
+            # print(f'self.min_hits {self.min_hits}')
+            # print(f'self.frame_count {self.frame_count}\n')
+
+            '''
+            # self.frame_count <= self.min_hits 
+            This allows for all detections to be included in the initial frames 
+            (before the tracker has seen enough frames to confirm tracks).
+            '''
+            # if (trk.time_since_update < 1) and (trk.hit_streak >= self.min_hits or self.frame_count <= self.min_hits):
+            if (trk.time_since_update < 1) and (trk.hit_streak >= self.min_hits):
                 # +1 as MOT benchmark requires positive
                 ret.append(np.concatenate((d, [trk.id], [trk.conf], [trk.cls], [trk.det_ind])).reshape(1, -1))
+                # print(f'\n trk.id: {trk.id}')
+                # print(f'trk.conf: {trk.conf}')
+                # print(f'trk.cls: {trk.cls}')
+                # print(f'trk.det_ind: {trk.det_ind}\n')
+                # print()
             i -= 1
             # remove dead tracklet
             if trk.time_since_update > self.max_age:
