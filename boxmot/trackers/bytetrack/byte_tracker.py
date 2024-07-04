@@ -133,13 +133,24 @@ class BYTETracker(BaseTracker):
         self.frame_id = 0
         self.track_buffer = track_buffer
 
+        print(f'track_buffer: {track_buffer}')
+        print(f'self.track_buffer: {self.track_buffer}')
+
         self.per_class = per_class
         self.track_thresh = track_thresh
         self.match_thresh = match_thresh
-        self.det_thresh = track_thresh
+        self.det_thresh = track_thresh 
         self.buffer_size = int(frame_rate / 30.0 * track_buffer)
         self.max_time_lost = self.buffer_size
         self.kalman_filter = KalmanFilter()
+
+
+        print(f'self.max_time_lost: {self.max_time_lost}')
+        print(f'det_thresh: {self.det_thresh}')
+        print(f'self.det_thresh: {self.det_thresh}')
+        print(f'track_thresh: {self.track_thresh}')
+        print(f'self.track_thresh: {self.track_thresh}')
+
 
     @PerClassDecorator
     def update(self, dets: np.ndarray, img: np.ndarray = None, embs: np.ndarray = None) -> np.ndarray:
@@ -162,7 +173,7 @@ class BYTETracker(BaseTracker):
         confs = dets[:, 4]
 
         remain_inds = confs > self.track_thresh
-
+ 
         inds_low = confs > 0.1
         inds_high = confs < self.track_thresh
         inds_second = np.logical_and(inds_low, inds_high)
