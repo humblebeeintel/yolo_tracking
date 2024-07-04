@@ -200,7 +200,7 @@ class BoTSORT(BaseTracker):
         match_thresh: float = 0.8,
         proximity_thresh: float = 0.5,
         appearance_thresh: float = 0.25,
-        cmc_method: str = "sof",
+        cmc_method: str = "sof", # camera motion
         frame_rate=30,
         fuse_first_associate: bool = False,
         with_reid: bool = True,
@@ -215,6 +215,10 @@ class BoTSORT(BaseTracker):
         self.track_low_thresh = track_low_thresh
         self.new_track_thresh = new_track_thresh
         self.match_thresh = match_thresh
+
+        print(f'new_track_thresh {new_track_thresh}')
+        print(f'self.new_track_thresh {self.new_track_thresh}')
+        
 
         self.buffer_size = int(frame_rate / 30.0 * track_buffer)
         self.kalman_filter = KalmanFilter()
@@ -234,6 +238,7 @@ class BoTSORT(BaseTracker):
         self.fuse_first_associate = fuse_first_associate
 
     @PerClassDecorator
+
     def update(self, dets: np.ndarray, img: np.ndarray, embs: np.ndarray = None) -> np.ndarray:
         assert isinstance(
             dets, np.ndarray
@@ -301,9 +306,10 @@ class BoTSORT(BaseTracker):
         STrack.multi_predict(strack_pool)
 
         # Fix camera motion
-        warp = self.cmc.apply(img, dets_first)
-        STrack.multi_gmc(strack_pool, warp)
-        STrack.multi_gmc(unconfirmed, warp)
+        # warp = self.cmc.apply(img, dets_first)
+        # print(f'self.cmc: {self.cmc}')
+        # STrack.multi_gmc(strack_pool, warp)
+        # STrack.multi_gmc(unconfirmed, warp)
 
         # Associate with high conf detection boxes
         ious_dists = iou_distance(strack_pool, detections)
