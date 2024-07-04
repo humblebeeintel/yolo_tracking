@@ -195,7 +195,7 @@ class OCSort(BaseTracker):
     def __init__(
         self,
         per_class=False,
-        det_thresh=0.2,
+        det_thresh=0.25,
         max_age=30,
         min_hits=3,
         asso_threshold=0.3,
@@ -219,6 +219,11 @@ class OCSort(BaseTracker):
         self.inertia = inertia
         self.use_byte = use_byte
         KalmanBoxTracker.count = 0
+
+        print(f'self.det_thresh {self.det_thresh}')
+        print(f'det_thresh {det_thresh}')
+        print(f'self.min_hits {self.min_hits}')
+        print(f'min_hits {min_hits}')
 
     @PerClassDecorator
     def update(self, dets: np.ndarray, img: np.ndarray, embs: np.ndarray = None) -> np.ndarray:
@@ -249,6 +254,9 @@ class OCSort(BaseTracker):
 
         inds_low = confs > 0.1
         inds_high = confs < self.det_thresh
+
+        print(f'Tracking self.det_thresh {self.det_thresh}')
+        
         inds_second = np.logical_and(
             inds_low, inds_high
         )  # self.det_thresh > score > 0.1, for second matching
@@ -297,6 +305,7 @@ class OCSort(BaseTracker):
         """
         # BYTE association
         if self.use_byte and len(dets_second) > 0 and unmatched_trks.shape[0] > 0:
+            print(f'\nUsing BYTE association for second round\n')
             u_trks = trks[unmatched_trks]
             iou_left = self.asso_func(
                 dets_second, u_trks
@@ -367,8 +376,13 @@ class OCSort(BaseTracker):
                 we didn't notice significant difference here
                 """
                 d = trk.last_observation[:4]
+
+            # inclusion of initial detections
+            # if (trk.time_since_update < 1) and (
+            #     trk.hit_streak >= self.min_hits or self.frame_count <= self.min_hits
+            # ):
             if (trk.time_since_update < 1) and (
-                trk.hit_streak >= self.min_hits or self.frame_count <= self.min_hits
+                trk.hit_streak >= self.min_hits
             ):
                 # +1 as MOT benchmark requires positive
                 ret.append(
