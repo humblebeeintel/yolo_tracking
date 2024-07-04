@@ -21,6 +21,8 @@ def create_tracker(tracker_type, tracker_config, reid_weights, device, half, per
         cfg = yaml.load(f.read(), Loader=yaml.FullLoader)
     cfg = SimpleNamespace(**cfg)  # easier dict acces by dot, instead of ['']
 
+    print(f'cfg: {cfg}')
+
     if tracker_type == 'strongsort':
         from boxmot.trackers.strongsort.strong_sort import StrongSORT
         strongsort = StrongSORT(

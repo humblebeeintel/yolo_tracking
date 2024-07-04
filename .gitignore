@@ -53,7 +53,7 @@ boxmot/motion/cmc/*.jpg
 datasets/
 myenv/
 MOT17/
-MOT20/
+MOT20_default/
 PersonPath22/
 VIRAT-S/
 PersonPath22_.25/
