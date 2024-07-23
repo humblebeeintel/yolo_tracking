@@ -133,8 +133,8 @@ class BYTETracker(BaseTracker):
         self.frame_id = 0
         self.track_buffer = track_buffer
 
-        print(f'track_buffer: {track_buffer}')
-        print(f'self.track_buffer: {self.track_buffer}')
+        # print(f'track_buffer: {track_buffer}')
+        # print(f'self.track_buffer: {self.track_buffer}')
 
         self.per_class = per_class
         self.track_thresh = track_thresh
@@ -145,11 +145,11 @@ class BYTETracker(BaseTracker):
         self.kalman_filter = KalmanFilter()
 
 
-        print(f'self.max_time_lost: {self.max_time_lost}')
-        print(f'det_thresh: {self.det_thresh}')
-        print(f'self.det_thresh: {self.det_thresh}')
-        print(f'track_thresh: {self.track_thresh}')
-        print(f'self.track_thresh: {self.track_thresh}')
+        # print(f'self.max_time_lost: {self.max_time_lost}')
+        # print(f'det_thresh: {self.det_thresh}')
+        # print(f'self.det_thresh: {self.det_thresh}')
+        # print(f'track_thresh: {self.track_thresh}')
+        # print(f'self.track_thresh: {self.track_thresh}')
 
 
     @PerClassDecorator

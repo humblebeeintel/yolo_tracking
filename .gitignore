@@ -52,17 +52,5 @@ boxmot/motion/cmc/*.jpg
 
 datasets/
 myenv/
-MOT17/
-MOT20_default/
-PersonPath22/
-VIRAT-S/
-PersonPath22_.25/
-MOT17-train/
-KITTI/
 
-MOT20_.25__cmc_off
-
-viz_MOT17/
-viz_MOT20/
-viz_PersonPath22/
-viz_VIRAT-S/
+yolo_trackers_runs/

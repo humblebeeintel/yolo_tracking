@@ -220,10 +220,10 @@ class OCSort(BaseTracker):
         self.use_byte = use_byte
         KalmanBoxTracker.count = 0
 
-        print(f'self.det_thresh {self.det_thresh}')
-        print(f'det_thresh {det_thresh}')
-        print(f'self.min_hits {self.min_hits}')
-        print(f'min_hits {min_hits}')
+        # print(f'self.det_thresh {self.det_thresh}')
+        # print(f'det_thresh {det_thresh}')
+        # print(f'self.min_hits {self.min_hits}')
+        # print(f'min_hits {min_hits}')
 
     @PerClassDecorator
     def update(self, dets: np.ndarray, img: np.ndarray, embs: np.ndarray = None) -> np.ndarray:
@@ -255,7 +255,7 @@ class OCSort(BaseTracker):
         inds_low = confs > 0.1
         inds_high = confs < self.det_thresh
 
-        print(f'Tracking self.det_thresh {self.det_thresh}')
+        # print(f'Tracking self.det_thresh {self.det_thresh}')
         
         inds_second = np.logical_and(
             inds_low, inds_high
