@@ -216,8 +216,8 @@ class BoTSORT(BaseTracker):
         self.new_track_thresh = new_track_thresh
         self.match_thresh = match_thresh
 
-        print(f'new_track_thresh {new_track_thresh}')
-        print(f'self.new_track_thresh {self.new_track_thresh}')
+        # print(f'new_track_thresh {new_track_thresh}')
+        # print(f'self.new_track_thresh {self.new_track_thresh}')
         
 
         self.buffer_size = int(frame_rate / 30.0 * track_buffer)
@@ -228,11 +228,11 @@ class BoTSORT(BaseTracker):
         self.appearance_thresh = appearance_thresh
 
         self.with_reid = with_reid
-        if self.with_reid:
-            rab = ReidAutoBackend(
-                weights=model_weights, device=device, half=fp16
-            )
-            self.model = rab.get_backend()
+        # if self.with_reid and (self.appearance_feature_layer is None):
+        #     rab = ReidAutoBackend(
+        #         weights=model_weights, device=device, half=fp16
+        #     )
+        #     self.model = rab.get_backend()
 
         self.cmc = SOF()
         self.fuse_first_associate = fuse_first_associate

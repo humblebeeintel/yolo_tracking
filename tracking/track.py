@@ -18,9 +18,9 @@ __tr = TestRequirements()
 __tr.check_packages(('ultralytics @ git+https://github.com/mikel-brostrom/ultralytics.git', ))  # install
 
 from ultralytics import YOLO
-from ultralytics.utils.plotting import Annotator, colors
-from ultralytics.data.utils import VID_FORMATS
-from ultralytics.utils.plotting import save_one_box
+#from ultralytics.utils.plotting import Annotator, colors
+#from ultralytics.data.utils import VID_FORMATS
+#from ultralytics.utils.plotting import save_one_box
 
 
 def on_predict_start(predictor, persist=False):
@@ -63,6 +63,8 @@ def run(args):
         args.yolo_model if 'yolov8' in str(args.yolo_model) else 'yolov8n.pt',
         #device=args.device
     )
+    ## print model summary
+    print(yolo.info())
     #yolo.to(args.device)
 
     results = yolo.track(
@@ -84,7 +86,8 @@ def run(args):
         classes=args.classes,
         imgsz=args.imgsz,
         vid_stride=args.vid_stride,
-        line_width=args.line_width
+        line_width=args.line_width,
+        appearance_feature_layer = 'layer0'
     )
 
     yolo.add_callback('on_predict_start', partial(on_predict_start, persist=True))
@@ -100,8 +103,8 @@ def run(args):
         yolo.predictor.model = model
 
     # store custom args in predictor
-    yolo.predictor.custom_args = args
-
+    yolo.predictor.custom_args = args 
+    
     for r in results:
         # print(f'r: {r}')
         img = yolo.predictor.trackers[0].plot_results(r.orig_img, args.show_trajectories)
@@ -162,7 +165,7 @@ def parse_opt():
                         help='The line width of the bounding boxes. If None, it is scaled to the image size.')
     parser.add_argument('--per-class', default=False, action='store_true',
                         help='not mix up classes when tracking')
-    parser.add_argument('--verbose', default=True, action='store_true',
+    parser.add_argument('--verbose', default=False, action='store_true',
                         help='print results per frame')
     parser.add_argument('--agnostic-nms', default=False, action='store_true',
                         help='class-agnostic NMS')

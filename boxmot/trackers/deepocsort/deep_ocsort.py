@@ -345,15 +345,15 @@ class DeepOCSort(BaseTracker):
         KalmanBoxTracker.count = 1
 
 
-        print(f'\nTracker det_thresh {det_thresh}')
-        print(f'Tracker self.det_thresh {self.det_thresh}')
-        print(f'Tracker min_hits {min_hits}')
-        print(f'Tracker self.min_hits {self.min_hits}\n')
-
-        rab = ReidAutoBackend(
-            weights=model_weights, device=device, half=fp16
-        )
-        self.model = rab.get_backend()
+        # print(f'\nTracker det_thresh {det_thresh}')
+        # print(f'Tracker self.det_thresh {self.det_thresh}')
+        # print(f'Tracker min_hits {min_hits}')
+        # print(f'Tracker self.min_hits {self.min_hits}\n')
+        # rab = ReidAutoBackend(
+        #     weights=model_weights, device=device, half=fp16
+        # )
+        # self.model = rab.get_backend()
+        
         # "similarity transforms using feature point extraction, optical flow, and RANSAC"
         self.cmc = get_cmc_method('sof')()
         self.embedding_off = embedding_off
@@ -385,7 +385,7 @@ class DeepOCSort(BaseTracker):
         dets = np.hstack([dets, np.arange(len(dets)).reshape(-1, 1)])
         assert dets.shape[1] == 7
         remain_inds = scores > self.det_thresh
-        print(f'\nTracker self.det_thresh {self.det_thresh}\n')
+        # print(f'\nTracker self.det_thresh {self.det_thresh}\n')
         dets = dets[remain_inds]
 
         # appearance descriptor extraction
@@ -394,8 +394,9 @@ class DeepOCSort(BaseTracker):
         elif embs is not None:
             dets_embs = embs
         else:
-            # (Ndets x X) [512, 1024, 2048]
+            # (Ndets x ReID_DIM) [34 x 512]
             dets_embs = self.model.get_features(dets[:, 0:4], img)
+            raise Exception('This should not be reached')
 
         # CMC
         if not self.cmc_off:
@@ -442,7 +443,7 @@ class DeepOCSort(BaseTracker):
         if self.embedding_off or dets.shape[0] == 0 or trk_embs.shape[0] == 0:
             stage1_emb_cost = None
         else:
-            stage1_emb_cost = dets_embs @ trk_embs.T
+            stage1_emb_cost = dets_embs @ trk_embs.T # (34,512) @ (512,52)
         matched, unmatched_dets, unmatched_trks = associate(
             dets[:, 0:5],
             trks,
