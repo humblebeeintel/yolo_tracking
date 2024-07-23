@@ -204,6 +204,7 @@ class BoTSORT(BaseTracker):
         frame_rate=30,
         fuse_first_associate: bool = False,
         with_reid: bool = True,
+        appearance_feature_layer: str = None,
     ):
         super().__init__()
         self.lost_stracks = []  # type: list[STrack]
@@ -228,11 +229,13 @@ class BoTSORT(BaseTracker):
         self.appearance_thresh = appearance_thresh
 
         self.with_reid = with_reid
-        # if self.with_reid and (self.appearance_feature_layer is None):
-        #     rab = ReidAutoBackend(
-        #         weights=model_weights, device=device, half=fp16
-        #     )
-        #     self.model = rab.get_backend()
+        self.appearance_feature_layer = appearance_feature_layer
+        
+        if self.with_reid and (self.appearance_feature_layer is None):
+            rab = ReidAutoBackend(
+                weights=model_weights, device=device, half=fp16
+            )
+            self.model = rab.get_backend()
 
         self.cmc = SOF()
         self.fuse_first_associate = fuse_first_associate

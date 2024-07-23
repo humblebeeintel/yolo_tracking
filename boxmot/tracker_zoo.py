@@ -15,7 +15,7 @@ def get_tracker_config(tracker_type):
     return tracking_config
 
 
-def create_tracker(tracker_type, tracker_config, reid_weights, device, half, per_class):
+def create_tracker(tracker_type, tracker_config, reid_weights, device, half, per_class, appearance_feature_layer):
 
     with open(tracker_config, "r") as f:
         cfg = yaml.load(f.read(), Loader=yaml.FullLoader)
@@ -82,6 +82,7 @@ def create_tracker(tracker_type, tracker_config, reid_weights, device, half, per
             appearance_thresh=cfg.appearance_thresh,
             cmc_method=cfg.cmc_method,
             frame_rate=cfg.frame_rate,
+            appearance_feature_layer=appearance_feature_layer
         )
         return botsort
     elif tracker_type == 'deepocsort':
@@ -99,6 +100,7 @@ def create_tracker(tracker_type, tracker_config, reid_weights, device, half, per
             delta_t=cfg.delta_t,
             asso_func=cfg.asso_func,
             inertia=cfg.inertia,
+            appearance_feature_layer=appearance_feature_layer,
         )
         return deepocsort
     elif tracker_type == 'hybridsort':

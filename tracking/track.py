@@ -46,7 +46,8 @@ def on_predict_start(predictor, persist=False):
             predictor.custom_args.reid_model,
             predictor.device,
             predictor.custom_args.half,
-            predictor.custom_args.per_class
+            predictor.custom_args.per_class,
+            predictor.custom_args.appearance_feature_layer
         )
         # motion only modeles do not have
         if hasattr(tracker, 'model'):
@@ -61,11 +62,9 @@ def run(args):
 
     yolo = YOLO(
         args.yolo_model if 'yolov8' in str(args.yolo_model) else 'yolov8n.pt',
-        #device=args.device
     )
     ## print model summary
     print(yolo.info())
-    #yolo.to(args.device)
 
     results = yolo.track(
         source=args.source,
@@ -87,7 +86,7 @@ def run(args):
         imgsz=args.imgsz,
         vid_stride=args.vid_stride,
         line_width=args.line_width,
-        appearance_feature_layer = 'layer0'
+        appearance_feature_layer = args.appearance_feature_layer
     )
 
     yolo.add_callback('on_predict_start', partial(on_predict_start, persist=True))
@@ -106,7 +105,7 @@ def run(args):
     yolo.predictor.custom_args = args 
     
     for r in results:
-        # print(f'r: {r}')
+
         img = yolo.predictor.trackers[0].plot_results(r.orig_img, args.show_trajectories)
 
         if args.show is True:
@@ -128,7 +127,7 @@ def parse_opt():
                         help='file/dir/URL/glob, 0 for webcam')
     parser.add_argument('--imgsz', '--img', '--img-size', nargs='+', type=int, default=[1280],
                         help='inference size h,w')
-    parser.add_argument('--conf', type=float, default=0.25, # confidence threshold
+    parser.add_argument('--conf', type=float, default=0.25,
                         help='confidence threshold')
     parser.add_argument('--iou', type=float, default=0.7,
                         help='intersection over union (IoU) threshold for NMS')
@@ -169,6 +168,8 @@ def parse_opt():
                         help='print results per frame')
     parser.add_argument('--agnostic-nms', default=False, action='store_true',
                         help='class-agnostic NMS')
+    parser.add_argument('--appearance-feature-layer', default=None, type=str, 
+                        help='(For LITE paradigm) layer to extract appearance features from')
 
     opt = parser.parse_args()
     return opt

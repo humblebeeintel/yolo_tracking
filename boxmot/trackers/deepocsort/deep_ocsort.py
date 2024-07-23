@@ -314,7 +314,7 @@ class DeepOCSort(BaseTracker):
         det_thresh=0.3,
         max_age=30,
         min_hits=3,
-        iou_threshold=0.3,
+        iou_threshold=0.3, ###
         delta_t=3,
         asso_func="iou",
         inertia=0.2,
@@ -325,6 +325,7 @@ class DeepOCSort(BaseTracker):
         cmc_off=True,
         aw_off=False,
         new_kf_off=False,
+        appearance_feature_layer=None,
         **kwargs
     ):
         super().__init__(max_age=max_age)
@@ -342,6 +343,7 @@ class DeepOCSort(BaseTracker):
         self.alpha_fixed_emb = alpha_fixed_emb
         self.aw_param = aw_param
         self.per_class = per_class
+        self.appearance_feature_layer = appearance_feature_layer
         KalmanBoxTracker.count = 1
 
 
@@ -349,10 +351,12 @@ class DeepOCSort(BaseTracker):
         # print(f'Tracker self.det_thresh {self.det_thresh}')
         # print(f'Tracker min_hits {min_hits}')
         # print(f'Tracker self.min_hits {self.min_hits}\n')
-        # rab = ReidAutoBackend(
-        #     weights=model_weights, device=device, half=fp16
-        # )
-        # self.model = rab.get_backend()
+        
+        if self.appearance_feature_layer is None:
+            rab = ReidAutoBackend(
+                weights=model_weights, device=device, half=fp16
+            )
+            self.model = rab.get_backend()
         
         # "similarity transforms using feature point extraction, optical flow, and RANSAC"
         self.cmc = get_cmc_method('sof')()
@@ -385,7 +389,7 @@ class DeepOCSort(BaseTracker):
         dets = np.hstack([dets, np.arange(len(dets)).reshape(-1, 1)])
         assert dets.shape[1] == 7
         remain_inds = scores > self.det_thresh
-        # print(f'\nTracker self.det_thresh {self.det_thresh}\n')
+
         dets = dets[remain_inds]
 
         # appearance descriptor extraction
@@ -396,7 +400,7 @@ class DeepOCSort(BaseTracker):
         else:
             # (Ndets x ReID_DIM) [34 x 512]
             dets_embs = self.model.get_features(dets[:, 0:4], img)
-            raise Exception('This should not be reached')
+            # raise Exception('This should not be reached')
 
         # CMC
         if not self.cmc_off:
@@ -523,10 +527,6 @@ class DeepOCSort(BaseTracker):
                 """
                 d = trk.last_observation[:4]
             
-            # print(f'\n trk.time_since_update: {trk.time_since_update}')
-            # print(f'trk.hit_streak {trk.hit_streak}')
-            # print(f'self.min_hits {self.min_hits}')
-            # print(f'self.frame_count {self.frame_count}\n')
 
             '''
             # self.frame_count <= self.min_hits 
@@ -537,11 +537,7 @@ class DeepOCSort(BaseTracker):
             if (trk.time_since_update < 1) and (trk.hit_streak >= self.min_hits):
                 # +1 as MOT benchmark requires positive
                 ret.append(np.concatenate((d, [trk.id], [trk.conf], [trk.cls], [trk.det_ind])).reshape(1, -1))
-                # print(f'\n trk.id: {trk.id}')
-                # print(f'trk.conf: {trk.conf}')
-                # print(f'trk.cls: {trk.cls}')
-                # print(f'trk.det_ind: {trk.det_ind}\n')
-                # print()
+       
             i -= 1
             # remove dead tracklet
             if trk.time_since_update > self.max_age:
