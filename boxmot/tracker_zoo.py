@@ -15,7 +15,7 @@ def get_tracker_config(tracker_type):
     return tracking_config
 
 
-def create_tracker(tracker_type, tracker_config, reid_weights, device, half, per_class, appearance_feature_layer):
+def create_tracker(tracker_type, tracker_config, reid_weights, device, half, per_class, iou, appearance_feature_layer):
 
     with open(tracker_config, "r") as f:
         cfg = yaml.load(f.read(), Loader=yaml.FullLoader)
@@ -47,7 +47,8 @@ def create_tracker(tracker_type, tracker_config, reid_weights, device, half, per
             det_thresh=cfg.det_thresh,
             max_age=cfg.max_age,
             min_hits=cfg.min_hits,
-            asso_threshold=cfg.iou_thresh,
+            # asso_threshold=cfg.iou_thresh, # uses asso_threshold from the config .yaml file
+            asso_threshold=iou, # uses asso_threshold from the input argument (track.py)
             delta_t=cfg.delta_t,
             asso_func=cfg.asso_func,
             inertia=cfg.inertia,
@@ -96,7 +97,8 @@ def create_tracker(tracker_type, tracker_config, reid_weights, device, half, per
             det_thresh=cfg.det_thresh,
             max_age=cfg.max_age,
             min_hits=cfg.min_hits,
-            iou_threshold=cfg.iou_thresh,
+            # iou_threshold=cfg.iou_thresh, # uses iou_threshold from the config .yaml file
+            iou_threshold=iou, # uses iou_threshold from the input argument (track.py)
             delta_t=cfg.delta_t,
             asso_func=cfg.asso_func,
             inertia=cfg.inertia,

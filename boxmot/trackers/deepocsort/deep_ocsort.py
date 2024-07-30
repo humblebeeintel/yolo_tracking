@@ -443,6 +443,7 @@ class DeepOCSort(BaseTracker):
         """
             First round of association
         """
+        print(f'Using IoU threshold {self.iou_threshold}')
         # (M detections X N tracks, final score)
         if self.embedding_off or dets.shape[0] == 0 or trk_embs.shape[0] == 0:
             stage1_emb_cost = None
