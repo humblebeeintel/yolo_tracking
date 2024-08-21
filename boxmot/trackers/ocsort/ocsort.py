@@ -294,7 +294,7 @@ class OCSort(BaseTracker):
         """
             First round of association
         """
-        print(f'OCSORT using asso_threshold (IoU): {self.asso_threshold}')
+        # print(f'OCSORT using asso_threshold (IoU): {self.asso_threshold}')
         matched, unmatched_dets, unmatched_trks = associate(
             dets[:, 0:5], trks, self.asso_func, self.asso_threshold, velocities, k_observations, self.inertia, w, h
         )

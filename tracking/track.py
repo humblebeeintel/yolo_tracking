@@ -8,14 +8,21 @@ from pathlib import Path
 
 import torch
 
+import sys
+sys.path.insert(0, '/media/hbai/data/code/LiteSORT')
+sys.path.insert(1, '/media/hbai/data/code/LiteSORT/yolo_tracking')
+# print('sys.path:', sys.path)
+
 from boxmot import TRACKERS
 from boxmot.tracker_zoo import create_tracker
 from boxmot.utils import ROOT, WEIGHTS, TRACKER_CONFIGS
 from boxmot.utils.checks import TestRequirements
+
+
 from tracking.detectors import get_yolo_inferer
 
 __tr = TestRequirements()
-__tr.check_packages(('ultralytics @ git+https://github.com/mikel-brostrom/ultralytics.git', ))  # install
+# __tr.check_packages(('ultralytics @ git+https://github.com/mikel-brostrom/ultralytics.git', ))  # install
 
 from ultralytics import YOLO
 #from ultralytics.utils.plotting import Annotator, colors
@@ -37,7 +44,7 @@ def on_predict_start(predictor, persist=False):
 
     # 
     tracking_config = TRACKER_CONFIGS / (predictor.custom_args.tracking_method + '.yaml')
-    print(f'\nUsing tracking config: {tracking_config}\n')
+    # print(f'\nUsing tracking config: {tracking_config}\n')
     trackers = []
     for i in range(predictor.dataset.bs):
         tracker = create_tracker(
@@ -47,6 +54,8 @@ def on_predict_start(predictor, persist=False):
             predictor.device,
             predictor.custom_args.half,
             predictor.custom_args.per_class,
+            predictor.custom_args.iou,
+            predictor.custom_args.conf,
             predictor.custom_args.appearance_feature_layer
         )
         # motion only modeles do not have
@@ -101,11 +110,14 @@ def run(args):
         )
         yolo.predictor.model = model
 
+    # temporary iou pass as default of ocsort & deepocsort
+    args.iou = 0.3
+    
     # store custom args in predictor
     yolo.predictor.custom_args = args 
     
     for r in results:
-
+        
         img = yolo.predictor.trackers[0].plot_results(r.orig_img, args.show_trajectories)
 
         if args.show is True:
@@ -178,4 +190,6 @@ def parse_opt():
 if __name__ == "__main__":
     opt = parse_opt()
     print(f"YOLO: {opt.yolo_model}")
+    print(f'IoU: {opt.iou}')
+    print(f'Confidence: {opt.conf}')
     run(opt)

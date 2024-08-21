@@ -388,6 +388,8 @@ class DeepOCSort(BaseTracker):
         scores = dets[:, 4]
         dets = np.hstack([dets, np.arange(len(dets)).reshape(-1, 1)])
         assert dets.shape[1] == 7
+        
+        ### self.conf is not same as passed conf argument
         remain_inds = scores > self.det_thresh
 
         dets = dets[remain_inds]
@@ -443,12 +445,18 @@ class DeepOCSort(BaseTracker):
         """
             First round of association
         """
-        print(f'Using IoU threshold {self.iou_threshold}')
+        # print(f'Using IoU threshold {self.iou_threshold}')
         # (M detections X N tracks, final score)
+        
+        ### ISSUE: dets (39, 7) while dets_embs (82, 80)
+        
         if self.embedding_off or dets.shape[0] == 0 or trk_embs.shape[0] == 0:
             stage1_emb_cost = None
         else:
+            # dets_embs (39, 80), trk_embs (38, 80) conf >= 0.25
+            # dets_embs (82, 80), trk_embs (38, 80) conf < 0.25
             stage1_emb_cost = dets_embs @ trk_embs.T # (34,512) @ (512,52)
+            
         matched, unmatched_dets, unmatched_trks = associate(
             dets[:, 0:5],
             trks,
