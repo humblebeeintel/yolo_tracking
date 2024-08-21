@@ -32,8 +32,8 @@ def process_sequence(seq_path, args, gpu_id):
         args.save_txt = True
 
         # Tracking method
-        args.tracking_method = 'botsort'
-        args.project = os.path.join('/media/hbai/data/code/LiteSORT/yolo_tracking/hbai_scripts/MOT17-train_LITE', f"{args.tracking_method}__input_1280__conf_.25")
+        args.tracking_method = 'deepocsort'
+        args.project = os.path.join('/media/hbai/data/code/LiteSORT/yolo_tracking/hbai_scripts/MOT20-train_LITE', f"{args.tracking_method}__input_1280__conf_.25")
         video_name = seq_path.split('/')[-2]
         #print(f'VIDEO_NAME: {video_name}')
         args.name = os.path.basename(video_name)
@@ -62,9 +62,9 @@ if __name__ == '__main__':
     args = parse_opt()
 
     gpu_ids = [0]  # List of GPU indices to use
-    workers_per_gpu = 7 # Number of workers per GPU
+    workers_per_gpu = 4 # Number of workers per GPU
 
-    source_path = '/media/hbai/data/code/LiteSORT/datasets/MOT17/train'
+    source_path = '/media/hbai/data/code/LiteSORT/datasets/MOT20/train'
 
     # Ensure the source is a directory containing subdirectories with image sequences
     if os.path.isdir(source_path):

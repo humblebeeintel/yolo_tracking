@@ -30,15 +30,16 @@ def process_sequence(seq_path, args, gpu_id):
         args.yolo_model = "yolov8m"
         args.classes = 0
         args.save_txt = True
+        args.appearance_feature_layer = "layer0"
 
-        # Tracking method
-        args.tracking_method = 'botsort'
-        args.project = os.path.join('/media/hbai/data/code/LiteSORT/yolo_tracking/hbai_scripts/MOT17-train_LITE', f"{args.tracking_method}__input_1280__conf_.25")
-        video_name = seq_path.split('/')[-2]
-        #print(f'VIDEO_NAME: {video_name}')
-        args.name = os.path.basename(video_name)
-        args.exist_ok = True
+        # Set the name to the sequence name
+        seq_name = os.path.basename(os.path.dirname(seq_path))
+        args.name = seq_name
 
+        # Ensure the project directory exists
+        if not os.path.exists(args.project):
+            os.makedirs(args.project)
+        # print("calling run",args)
         run(args)
         
         end_time = time.time()
@@ -62,43 +63,49 @@ if __name__ == '__main__':
     args = parse_opt()
 
     gpu_ids = [0]  # List of GPU indices to use
-    workers_per_gpu = 7 # Number of workers per GPU
+    workers_per_gpu = 5  # Number of workers per GPU
 
-    source_path = '/media/hbai/data/code/LiteSORT/datasets/MOT17/train'
+    source_path = '/media/hbai/data/code/LiteSORT/datasets/DanceTrack/train'
 
     # Ensure the source is a directory containing subdirectories with image sequences
     if os.path.isdir(source_path):
         sequence_dirs = [join(source_path, d, 'img1') for d in os.listdir(source_path) if isdir(join(source_path, d, 'img1'))]
-        # Filter out directories without supported images
+                # Filter out directories without supported images
         sequence_dirs = [d for d in sequence_dirs if check_images_in_dir(d)]
     else:
         raise ValueError("The provided source path is not a directory")
 
-    # Create an empty list for each worker
-    sequence_chunks = [[] for _ in range(len(gpu_ids) * workers_per_gpu)]
+    trackers = ['botsort', 'deepocsort']
 
-    # Distribute sequences in a round-robin fashion
-    for sequence, worker in zip(sequence_dirs, cycle(range(len(sequence_chunks)))):
-        sequence_chunks[worker].append(sequence)
+    for tracker in trackers:
+        args.tracking_method = tracker
+        args.project = os.path.join('/media/hbai/data/code/LiteSORT/yolo_tracking/hbai_scripts/DanceTrack-train', f"{tracker}__input_1280__conf_.25")
 
-    # Debug print to check the sequence chunks
-    for i, chunk in enumerate(sequence_chunks):
-        print(f"Chunk {i+1} assigned to worker {i % workers_per_gpu} on GPU {gpu_ids[i // workers_per_gpu]}: {chunk}")
+        # Create an empty list for each worker
+        sequence_chunks = [[] for _ in range(len(gpu_ids) * workers_per_gpu)]
 
-    # Use multiprocessing Pool with the total number of workers
-    with Pool(processes=len(sequence_chunks)) as pool:
-        results = []
+        # Distribute sequences in a round-robin fashion
+        for sequence, worker in zip(sequence_dirs, cycle(range(len(sequence_chunks)))):
+            sequence_chunks[worker].append(sequence)
+
+        # Debug print to check the sequence chunks
         for i, chunk in enumerate(sequence_chunks):
-            gpu_id = gpu_ids[i // workers_per_gpu]
-            print(f'Assigning worker {i % workers_per_gpu} on GPU {gpu_id} to process chunk {i+1}/{len(sequence_chunks)}', flush=True)
-            result = pool.apply_async(process_sequences_on_gpu, args=(chunk, args, gpu_id))
-            results.append(result)
+            print(f"Chunk {i+1} assigned to worker {i % workers_per_gpu} on GPU {gpu_ids[i // workers_per_gpu]}: {chunk}")
 
-        for result in results:
-            result.wait()
+        # Use multiprocessing Pool with the total number of workers
+        with Pool(processes=len(sequence_chunks)) as pool:
+            results = []
+            for i, chunk in enumerate(sequence_chunks):
+                gpu_id = gpu_ids[i // workers_per_gpu]
+                print(f'Assigning worker {i % workers_per_gpu} on GPU {gpu_id} to process chunk {i+1}/{len(sequence_chunks)} for tracker {tracker}', flush=True)
+                result = pool.apply_async(process_sequences_on_gpu, args=(chunk, args, gpu_id))
+                results.append(result)
 
-        pool.close()
-        pool.join()
+            for result in results:
+                result.wait()
+
+            pool.close()
+            pool.join()
 
     end_time = time.time()
     total_time = end_time - start_time

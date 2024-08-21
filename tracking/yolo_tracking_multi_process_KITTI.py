@@ -10,11 +10,14 @@ from itertools import cycle
 
 warnings.filterwarnings("ignore")
 
+# trackers = ['bytetrack', 'botsort', 'ocsort', 'deepocsort']
+trackers = ['botsort', 'deepocsort']
+
 def check_images_in_dir(directory):
     supported_formats = ('.bmp', '.dng', '.jpeg', '.jpg', '.mpo', '.png', '.tif', '.tiff', '.webp', '.pfm')
     return any(isfile(join(directory, f)) and f.lower().endswith(supported_formats) for f in os.listdir(directory))
 
-def process_sequence(seq_path, args, gpu_id):
+def process_sequence(seq_path, args, gpu_id, tracking_method):
     # Explicitly set the current device to the specified GPU
     torch.cuda.set_device(gpu_id)
 
@@ -22,7 +25,7 @@ def process_sequence(seq_path, args, gpu_id):
     start_time = time.time()
 
     try:
-        print(f'Processing sequence {seq_path} on GPU {gpu_id} as {device} (process ID: {os.getpid()})...', flush=True)
+        print(f'Processing sequence {seq_path} on GPU {gpu_id} with {tracking_method} as {device} (process ID: {os.getpid()})...', flush=True)
         
         # Update the source path to the current sequence path
         args.source = seq_path
@@ -32,26 +35,24 @@ def process_sequence(seq_path, args, gpu_id):
         args.save_txt = True
 
         # Tracking method
-        args.tracking_method = 'botsort'
-        args.project = os.path.join('/workspace/LiteSORT/yolo_tracking/hbai_scripts/KITTI', f"{args.tracking_method}__input_1280__conf_.25")
+        args.tracking_method = tracking_method
+        args.project = os.path.join('/media/hbai/data/code/LiteSORT/yolo_tracking/hbai_scripts/KITTI_LITE', f"{args.tracking_method}__input_1280__conf_.25")
         video_name = seq_path.split('/')[-2]
-        #print(f'VIDEO_NAME: {video_name}')
         args.name = os.path.basename(video_name)
         args.exist_ok = True
 
         run(args)
         
         end_time = time.time()
-        print(f'Finished processing sequence {seq_path} on GPU {gpu_id} as {device} in {end_time - start_time:.2f} seconds', flush=True)
+        print(f'Finished processing sequence {seq_path} on GPU {gpu_id} with {tracking_method} as {device} in {end_time - start_time:.2f} seconds', flush=True)
     except torch.cuda.OutOfMemoryError as e:
-        print(f'Error processing sequence {seq_path} on GPU {gpu_id} as {device} (process ID: {os.getpid()}): CUDA out of memory. {str(e)}', flush=True)
+        print(f'Error processing sequence {seq_path} on GPU {gpu_id} with {tracking_method} as {device} (process ID: {os.getpid()}): CUDA out of memory. {str(e)}', flush=True)
     except Exception as e:
-        print(f'Error processing sequence {seq_path} on GPU {gpu_id} as {device} (process ID: {os.getpid()}): {str(e)}', flush=True)
+        print(f'Error processing sequence {seq_path} on GPU {gpu_id} with {tracking_method} as {device} (process ID: {os.getpid()}): {str(e)}', flush=True)
 
-def process_sequences_on_gpu(sequence_dirs, args, gpu_id):
+def process_sequences_on_gpu(sequence_dirs, args, gpu_id, tracking_method):
     for seq_dir in sequence_dirs:
-        #print(f'SEQ_DIR: {seq_dir}')
-        process_sequence(seq_dir, args, gpu_id)
+        process_sequence(seq_dir, args, gpu_id, tracking_method)
 
 if __name__ == '__main__':
     # Set the multiprocessing start method to 'spawn'
@@ -61,10 +62,10 @@ if __name__ == '__main__':
 
     args = parse_opt()
 
-    gpu_ids = [0, 1, 2, 3]  # List of GPU indices to use
-    workers_per_gpu = 5  # Number of workers per GPU
+    gpu_ids = [0]  # List of GPU indices to use
+    workers_per_gpu = 10  # Number of workers per GPU
 
-    source_path = '/workspace/LiteSORT/datasets/KITTI/train'
+    source_path = '/media/hbai/data/code/LiteSORT/datasets/KITTI/train'
 
     # Ensure the source is a directory containing subdirectories with image sequences
     if os.path.isdir(source_path):
@@ -88,11 +89,12 @@ if __name__ == '__main__':
     # Use multiprocessing Pool with the total number of workers
     with Pool(processes=len(sequence_chunks)) as pool:
         results = []
-        for i, chunk in enumerate(sequence_chunks):
-            gpu_id = gpu_ids[i // workers_per_gpu]
-            print(f'Assigning worker {i % workers_per_gpu} on GPU {gpu_id} to process chunk {i+1}/{len(sequence_chunks)}', flush=True)
-            result = pool.apply_async(process_sequences_on_gpu, args=(chunk, args, gpu_id))
-            results.append(result)
+        for tracking_method in trackers:
+            for i, chunk in enumerate(sequence_chunks):
+                gpu_id = gpu_ids[i // workers_per_gpu]
+                print(f'Assigning worker {i % workers_per_gpu} on GPU {gpu_id} to process chunk {i+1}/{len(sequence_chunks)} with {tracking_method}', flush=True)
+                result = pool.apply_async(process_sequences_on_gpu, args=(chunk, args, gpu_id, tracking_method))
+                results.append(result)
 
         for result in results:
             result.wait()

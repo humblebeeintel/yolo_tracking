@@ -54,3 +54,9 @@ datasets/
 myenv/
 
 yolo_trackers_runs/
+DanceTrack-train/
+viz_DanceTrack/
+DanceTrack-train_IoU/
+DanceTrack-train_yolo_trackers/
+DanceTrack-train_fixed_format/
+results/conf_thresh_experiment/
