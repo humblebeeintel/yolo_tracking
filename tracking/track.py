@@ -190,6 +190,5 @@ def parse_opt():
 if __name__ == "__main__":
     opt = parse_opt()
     print(f"YOLO: {opt.yolo_model}")
-    print(f'IoU: {opt.iou}')
-    print(f'Confidence: {opt.conf}')
+    
     run(opt)

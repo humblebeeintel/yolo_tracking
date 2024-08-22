@@ -220,10 +220,10 @@ class OCSort(BaseTracker):
         self.use_byte = use_byte
         KalmanBoxTracker.count = 0
 
-        # print(f'self.det_thresh {self.det_thresh}')
-        # print(f'det_thresh {det_thresh}')
-        # print(f'self.min_hits {self.min_hits}')
-        # print(f'min_hits {min_hits}')
+        # print all the arguments of self in a loop
+        for key, value in self.__dict__.items():
+            print(f'{key} : {value}')
+            
 
     @PerClassDecorator
     def update(self, dets: np.ndarray, img: np.ndarray, embs: np.ndarray = None) -> np.ndarray:

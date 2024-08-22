@@ -124,8 +124,10 @@ class BYTETracker(BaseTracker):
         track_buffer=25,
         frame_rate=30,
         per_class=False,
+        det_thresh=0.25,
     ):
         super().__init__()
+        
         self.active_tracks = []  # type: list[STrack]
         self.lost_stracks = []  # type: list[STrack]
         self.removed_stracks = []  # type: list[STrack]
@@ -133,23 +135,21 @@ class BYTETracker(BaseTracker):
         self.frame_id = 0
         self.track_buffer = track_buffer
 
-        # print(f'track_buffer: {track_buffer}')
-        # print(f'self.track_buffer: {self.track_buffer}')
-
         self.per_class = per_class
         self.track_thresh = track_thresh
         self.match_thresh = match_thresh
-        self.det_thresh = track_thresh 
+        self.det_thresh = det_thresh 
         self.buffer_size = int(frame_rate / 30.0 * track_buffer)
         self.max_time_lost = self.buffer_size
         self.kalman_filter = KalmanFilter()
 
 
-        # print(f'self.max_time_lost: {self.max_time_lost}')
-        # print(f'det_thresh: {self.det_thresh}')
-        # print(f'self.det_thresh: {self.det_thresh}')
-        # print(f'track_thresh: {self.track_thresh}')
-        # print(f'self.track_thresh: {self.track_thresh}')
+        # print all the arguments of self
+        for key, value in self.__dict__.items():
+            print(f'{key}: {value}')
+            
+        
+        
 
 
     @PerClassDecorator
