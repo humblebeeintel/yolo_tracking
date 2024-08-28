@@ -220,10 +220,9 @@ class OCSort(BaseTracker):
         self.use_byte = use_byte
         KalmanBoxTracker.count = 0
 
-        # print all the arguments of self in a loop
+        # print all the arguments of self
         for key, value in self.__dict__.items():
             print(f'{key} : {value}')
-            
 
     @PerClassDecorator
     def update(self, dets: np.ndarray, img: np.ndarray, embs: np.ndarray = None) -> np.ndarray:
@@ -255,8 +254,6 @@ class OCSort(BaseTracker):
         inds_low = confs > 0.1
         inds_high = confs < self.det_thresh
 
-        # print(f'Tracking self.det_thresh {self.det_thresh}')
-        
         inds_second = np.logical_and(
             inds_low, inds_high
         )  # self.det_thresh > score > 0.1, for second matching
@@ -283,7 +280,8 @@ class OCSort(BaseTracker):
                 for trk in self.active_tracks
             ]
         )
-        last_boxes = np.array([trk.last_observation for trk in self.active_tracks])
+        last_boxes = np.array(
+            [trk.last_observation for trk in self.active_tracks])
         k_observations = np.array(
             [
                 k_previous_obs(trk.observations, trk.age, self.delta_t)
@@ -294,12 +292,12 @@ class OCSort(BaseTracker):
         """
             First round of association
         """
-        # print(f'OCSORT using asso_threshold (IoU): {self.asso_threshold}')
         matched, unmatched_dets, unmatched_trks = associate(
             dets[:, 0:5], trks, self.asso_func, self.asso_threshold, velocities, k_observations, self.inertia, w, h
         )
         for m in matched:
-            self.active_tracks[m[1]].update(dets[m[0], :5], dets[m[0], 5], dets[m[0], 6])
+            self.active_tracks[m[1]].update(
+                dets[m[0], :5], dets[m[0], 5], dets[m[0], 6])
 
         """
             Second round of associaton by OCR
@@ -325,7 +323,8 @@ class OCSort(BaseTracker):
                     if iou_left[m[0], m[1]] < self.asso_threshold:
                         continue
                     self.active_tracks[trk_ind].update(
-                        dets_second[det_ind, :5], dets_second[det_ind, 5], dets_second[det_ind, 6]
+                        dets_second[det_ind, :5], dets_second[det_ind,
+                                                              5], dets_second[det_ind, 6]
                     )
                     to_remove_trk_indices.append(trk_ind)
                 unmatched_trks = np.setdiff1d(
@@ -335,7 +334,8 @@ class OCSort(BaseTracker):
         if unmatched_dets.shape[0] > 0 and unmatched_trks.shape[0] > 0:
             left_dets = dets[unmatched_dets]
             left_trks = last_boxes[unmatched_trks]
-            iou_left = run_asso_func(self.asso_func, left_dets, left_trks, w, h)
+            iou_left = run_asso_func(
+                self.asso_func, left_dets, left_trks, w, h)
             iou_left = np.array(iou_left)
             if iou_left.max() > self.asso_threshold:
                 """
@@ -347,10 +347,12 @@ class OCSort(BaseTracker):
                 to_remove_det_indices = []
                 to_remove_trk_indices = []
                 for m in rematched_indices:
-                    det_ind, trk_ind = unmatched_dets[m[0]], unmatched_trks[m[1]]
+                    det_ind, trk_ind = unmatched_dets[m[0]
+                                                      ], unmatched_trks[m[1]]
                     if iou_left[m[0], m[1]] < self.asso_threshold:
                         continue
-                    self.active_tracks[trk_ind].update(dets[det_ind, :5], dets[det_ind, 5], dets[det_ind, 6])
+                    self.active_tracks[trk_ind].update(
+                        dets[det_ind, :5], dets[det_ind, 5], dets[det_ind, 6])
                     to_remove_det_indices.append(det_ind)
                     to_remove_trk_indices.append(trk_ind)
                 unmatched_dets = np.setdiff1d(
@@ -365,7 +367,8 @@ class OCSort(BaseTracker):
 
         # create and initialise new trackers for unmatched detections
         for i in unmatched_dets:
-            trk = KalmanBoxTracker(dets[i, :5], dets[i, 5], dets[i, 6], delta_t=self.delta_t, max_obs=self.max_obs)
+            trk = KalmanBoxTracker(
+                dets[i, :5], dets[i, 5], dets[i, 6], delta_t=self.delta_t, max_obs=self.max_obs)
             self.active_tracks.append(trk)
         i = len(self.active_tracks)
         for trk in reversed(self.active_tracks):

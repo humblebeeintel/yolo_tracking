@@ -21,8 +21,6 @@ def create_tracker(tracker_type, tracker_config, reid_weights, device, half, per
         cfg = yaml.load(f.read(), Loader=yaml.FullLoader)
     cfg = SimpleNamespace(**cfg)  # easier dict acces by dot, instead of ['']
 
-    # print(f'cfg: {cfg}')
-
     if tracker_type == 'strongsort':
         from boxmot.trackers.strongsort.strong_sort import StrongSORT
         strongsort = StrongSORT(
@@ -48,8 +46,8 @@ def create_tracker(tracker_type, tracker_config, reid_weights, device, half, per
             det_thresh=det_thresh,
             max_age=cfg.max_age,
             min_hits=cfg.min_hits,
-            # asso_threshold=cfg.iou_thresh, # uses asso_threshold from the config .yaml file
-            asso_threshold=iou, # uses asso_threshold from the input argument (track.py)
+            # asso_threshold=cfg.iou_thresh,
+            asso_threshold=iou,
             delta_t=cfg.delta_t,
             asso_func=cfg.asso_func,
             inertia=cfg.inertia,
@@ -100,8 +98,8 @@ def create_tracker(tracker_type, tracker_config, reid_weights, device, half, per
             det_thresh=det_thresh,
             max_age=cfg.max_age,
             min_hits=cfg.min_hits,
-            # iou_threshold=cfg.iou_thresh, # uses iou_threshold from the config .yaml file
-            iou_threshold=iou, # uses iou_threshold from the input argument (track.py)
+            # iou_threshold=cfg.iou_thresh,
+            iou_threshold=iou,
             delta_t=cfg.delta_t,
             asso_func=cfg.asso_func,
             inertia=cfg.inertia,

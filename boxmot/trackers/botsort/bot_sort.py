@@ -23,7 +23,7 @@ class STrack(BaseTrack):
         self.conf = det[4]
         self.cls = det[5]
         self.det_ind = det[6]
-        self.max_obs=max_obs
+        self.max_obs = max_obs
         self.kalman_filter = None
         self.mean, self.covariance = None, None
         self.is_activated = False
@@ -46,7 +46,8 @@ class STrack(BaseTrack):
         if self.smooth_feat is None:
             self.smooth_feat = feat
         else:
-            self.smooth_feat = self.alpha * self.smooth_feat + (1 - self.alpha) * feat
+            self.smooth_feat = self.alpha * \
+                self.smooth_feat + (1 - self.alpha) * feat
         self.features.append(feat)
         self.smooth_feat /= np.linalg.norm(self.smooth_feat)
 
@@ -200,7 +201,7 @@ class BoTSORT(BaseTracker):
         match_thresh: float = 0.8,
         proximity_thresh: float = 0.5,
         appearance_thresh: float = 0.25,
-        cmc_method: str = "sof", # camera motion
+        cmc_method: str = "sof",
         frame_rate=30,
         fuse_first_associate: bool = False,
         with_reid: bool = True,
@@ -217,10 +218,6 @@ class BoTSORT(BaseTracker):
         self.new_track_thresh = new_track_thresh
         self.match_thresh = match_thresh
 
-        # print(f'new_track_thresh {new_track_thresh}')
-        # print(f'self.new_track_thresh {self.new_track_thresh}')
-        
-
         self.buffer_size = int(frame_rate / 30.0 * track_buffer)
         self.kalman_filter = KalmanFilter()
 
@@ -230,7 +227,7 @@ class BoTSORT(BaseTracker):
 
         self.with_reid = with_reid
         self.appearance_feature_layer = appearance_feature_layer
-        
+
         if self.with_reid and (self.appearance_feature_layer is None):
             rab = ReidAutoBackend(
                 weights=model_weights, device=device, half=fp16
@@ -241,7 +238,6 @@ class BoTSORT(BaseTracker):
         self.fuse_first_associate = fuse_first_associate
 
     @PerClassDecorator
-
     def update(self, dets: np.ndarray, img: np.ndarray, embs: np.ndarray = None) -> np.ndarray:
         assert isinstance(
             dets, np.ndarray
@@ -268,7 +264,8 @@ class BoTSORT(BaseTracker):
         confs = dets[:, 4]
 
         # find second round association detections
-        second_mask = np.logical_and(confs > self.track_low_thresh, confs < self.track_high_thresh)
+        second_mask = np.logical_and(
+            confs > self.track_low_thresh, confs < self.track_high_thresh)
         dets_second = dets[second_mask]
 
         # find first round association detections
@@ -282,14 +279,17 @@ class BoTSORT(BaseTracker):
                 features_high = embs
             else:
                 # (Ndets x X) [512, 1024, 2048]
-                features_high = self.model.get_features(dets_first[:, 0:4], img)
+                features_high = self.model.get_features(
+                    dets_first[:, 0:4], img)
 
         if len(dets) > 0:
             """Detections"""
             if self.with_reid:
-                detections = [STrack(det, f, max_obs=self.max_obs) for (det, f) in zip(dets_first, features_high)]
+                detections = [STrack(det, f, max_obs=self.max_obs)
+                              for (det, f) in zip(dets_first, features_high)]
             else:
-                detections = [STrack(det, max_obs=self.max_obs) for (det) in np.array(dets_first)]
+                detections = [STrack(det, max_obs=self.max_obs)
+                              for (det) in np.array(dets_first)]
         else:
             detections = []
 
@@ -310,7 +310,6 @@ class BoTSORT(BaseTracker):
 
         # Fix camera motion
         # warp = self.cmc.apply(img, dets_first)
-        # print(f'self.cmc: {self.cmc}')
         # STrack.multi_gmc(strack_pool, warp)
         # STrack.multi_gmc(unconfirmed, warp)
 
@@ -318,7 +317,7 @@ class BoTSORT(BaseTracker):
         ious_dists = iou_distance(strack_pool, detections)
         ious_dists_mask = ious_dists > self.proximity_thresh
         if self.fuse_first_associate:
-          ious_dists = fuse_score(ious_dists, detections)
+            ious_dists = fuse_score(ious_dists, detections)
 
         if self.with_reid:
             emb_dists = embedding_distance(strack_pool, detections) / 2.0
@@ -345,7 +344,8 @@ class BoTSORT(BaseTracker):
         """ Step 3: Second association, with low conf detection boxes"""
         if len(dets_second) > 0:
             """Detections"""
-            detections_second = [STrack(dets_second, max_obs=self.max_obs) for dets_second in dets_second]
+            detections_second = [
+                STrack(dets_second, max_obs=self.max_obs) for dets_second in dets_second]
         else:
             detections_second = []
 
@@ -355,7 +355,8 @@ class BoTSORT(BaseTracker):
             if strack_pool[i].state == TrackState.Tracked
         ]
         dists = iou_distance(r_tracked_stracks, detections_second)
-        matches, u_track, u_detection_second = linear_assignment(dists, thresh=0.5)
+        matches, u_track, u_detection_second = linear_assignment(
+            dists, thresh=0.5)
         for itracked, idet in matches:
             track = r_tracked_stracks[itracked]
             det = detections_second[idet]
@@ -378,7 +379,7 @@ class BoTSORT(BaseTracker):
         ious_dists_mask = ious_dists > self.proximity_thresh
 
         ious_dists = fuse_score(ious_dists, detections)
-        
+
         if self.with_reid:
             emb_dists = embedding_distance(unconfirmed, detections) / 2.0
             emb_dists[emb_dists > self.appearance_thresh] = 1.0
@@ -387,7 +388,8 @@ class BoTSORT(BaseTracker):
         else:
             dists = ious_dists
 
-        matches, u_unconfirmed, u_detection = linear_assignment(dists, thresh=0.7)
+        matches, u_unconfirmed, u_detection = linear_assignment(
+            dists, thresh=0.7)
         for itracked, idet in matches:
             unconfirmed[itracked].update(detections[idet], self.frame_count)
             activated_starcks.append(unconfirmed[itracked])
@@ -415,17 +417,20 @@ class BoTSORT(BaseTracker):
         self.active_tracks = [
             t for t in self.active_tracks if t.state == TrackState.Tracked
         ]
-        self.active_tracks = joint_stracks(self.active_tracks, activated_starcks)
+        self.active_tracks = joint_stracks(
+            self.active_tracks, activated_starcks)
         self.active_tracks = joint_stracks(self.active_tracks, refind_stracks)
         self.lost_stracks = sub_stracks(self.lost_stracks, self.active_tracks)
         self.lost_stracks.extend(lost_stracks)
-        self.lost_stracks = sub_stracks(self.lost_stracks, self.removed_stracks)
+        self.lost_stracks = sub_stracks(
+            self.lost_stracks, self.removed_stracks)
         self.removed_stracks.extend(removed_stracks)
         self.active_tracks, self.lost_stracks = remove_duplicate_stracks(
             self.active_tracks, self.lost_stracks
         )
 
-        output_stracks = [track for track in self.active_tracks if track.is_activated]
+        output_stracks = [
+            track for track in self.active_tracks if track.is_activated]
         outputs = []
         for t in output_stracks:
             output = []

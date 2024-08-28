@@ -74,7 +74,8 @@ def speed_direction(bbox1, bbox2):
 
 def new_kf_process_noise(w, h, p=1 / 20, v=1 / 160):
     Q = np.diag(
-        ((p * w) ** 2, (p * h) ** 2, (p * w) ** 2, (p * h) ** 2, (v * w) ** 2, (v * h) ** 2, (v * w) ** 2, (v * h) ** 2)
+        ((p * w) ** 2, (p * h) ** 2, (p * w) ** 2, (p * h) ** 2,
+         (v * w) ** 2, (v * h) ** 2, (v * w) ** 2, (v * h) ** 2)
     )
     return Q
 
@@ -99,7 +100,7 @@ class KalmanBoxTracker(object):
 
         """
         # define constant velocity model
-        self.max_obs=max_obs
+        self.max_obs = max_obs
         self.new_kf = new_kf
         bbox = det[0:5]
         self.conf = det[4]
@@ -159,7 +160,8 @@ class KalmanBoxTracker(object):
                 ]
             )
             self.kf.R[2:, 2:] *= 10.0
-            self.kf.P[4:, 4:] *= 1000.0  # give high uncertainty to the unobservable initial velocities
+            # give high uncertainty to the unobservable initial velocities
+            self.kf.P[4:, 4:] *= 1000.0
             self.kf.P *= 10.0
             self.kf.Q[-1, -1] *= 0.01
             self.kf.Q[4:, 4:] *= 0.01
@@ -314,7 +316,7 @@ class DeepOCSort(BaseTracker):
         det_thresh=0.3,
         max_age=30,
         min_hits=3,
-        iou_threshold=0.3, ###
+        iou_threshold=0.3,
         delta_t=3,
         asso_func="iou",
         inertia=0.2,
@@ -346,24 +348,22 @@ class DeepOCSort(BaseTracker):
         self.appearance_feature_layer = appearance_feature_layer
         KalmanBoxTracker.count = 1
 
-
-        # print(f'\nTracker det_thresh {det_thresh}')
-        # print(f'Tracker self.det_thresh {self.det_thresh}')
-        # print(f'Tracker min_hits {min_hits}')
-        # print(f'Tracker self.min_hits {self.min_hits}\n')
-        
         if self.appearance_feature_layer is None:
             rab = ReidAutoBackend(
                 weights=model_weights, device=device, half=fp16
             )
             self.model = rab.get_backend()
-        
+
         # "similarity transforms using feature point extraction, optical flow, and RANSAC"
         self.cmc = get_cmc_method('sof')()
         self.embedding_off = embedding_off
         self.cmc_off = cmc_off
         self.aw_off = aw_off
         self.new_kf_off = new_kf_off
+
+        # print all the arguments of self
+        for key, value in self.__dict__.items():
+            print(f'{key}: {value}')
 
     @PerClassDecorator
     def update(self, dets: np.ndarray, img: np.ndarray, embs: np.ndarray = None) -> np.ndarray:
@@ -375,11 +375,14 @@ class DeepOCSort(BaseTracker):
         Returns the a similar array, where the last column is the object ID.
         NOTE: The number of objects returned may differ from the number of detections provided.
         """
-        #dets, s, c = dets.data
-        #print(dets, s, c)
-        assert isinstance(dets, np.ndarray), f"Unsupported 'dets' input type '{type(dets)}', valid format is np.ndarray"
-        assert isinstance(img, np.ndarray), f"Unsupported 'img' input type '{type(img)}', valid format is np.ndarray"
-        assert len(dets.shape) == 2, "Unsupported 'dets' dimensions, valid number of dimensions is two"
+        # dets, s, c = dets.data
+        # print(dets, s, c)
+        assert isinstance(
+            dets, np.ndarray), f"Unsupported 'dets' input type '{type(dets)}', valid format is np.ndarray"
+        assert isinstance(
+            img, np.ndarray), f"Unsupported 'img' input type '{type(img)}', valid format is np.ndarray"
+        assert len(
+            dets.shape) == 2, "Unsupported 'dets' dimensions, valid number of dimensions is two"
         assert dets.shape[1] == 6, "Unsupported 'dets' 2nd dimension lenght, valid lenghts is 6"
 
         self.frame_count += 1
@@ -388,8 +391,7 @@ class DeepOCSort(BaseTracker):
         scores = dets[:, 4]
         dets = np.hstack([dets, np.arange(len(dets)).reshape(-1, 1)])
         assert dets.shape[1] == 7
-        
-        ### self.conf is not same as passed conf argument
+
         remain_inds = scores > self.det_thresh
 
         dets = dets[remain_inds]
@@ -402,7 +404,6 @@ class DeepOCSort(BaseTracker):
         else:
             # (Ndets x ReID_DIM) [34 x 512]
             dets_embs = self.model.get_features(dets[:, 0:4], img)
-            # raise Exception('This should not be reached')
 
         # CMC
         if not self.cmc_off:
@@ -438,25 +439,23 @@ class DeepOCSort(BaseTracker):
         for t in reversed(to_del):
             self.active_tracks.pop(t)
 
-        velocities = np.array([trk.velocity if trk.velocity is not None else np.array((0, 0)) for trk in self.active_tracks])
-        last_boxes = np.array([trk.last_observation for trk in self.active_tracks])
-        k_observations = np.array([k_previous_obs(trk.observations, trk.age, self.delta_t) for trk in self.active_tracks])
+        velocities = np.array([trk.velocity if trk.velocity is not None else np.array(
+            (0, 0)) for trk in self.active_tracks])
+        last_boxes = np.array(
+            [trk.last_observation for trk in self.active_tracks])
+        k_observations = np.array([k_previous_obs(
+            trk.observations, trk.age, self.delta_t) for trk in self.active_tracks])
 
         """
             First round of association
         """
-        # print(f'Using IoU threshold {self.iou_threshold}')
         # (M detections X N tracks, final score)
-        
-        ### ISSUE: dets (39, 7) while dets_embs (82, 80)
-        
+
         if self.embedding_off or dets.shape[0] == 0 or trk_embs.shape[0] == 0:
             stage1_emb_cost = None
         else:
-            # dets_embs (39, 80), trk_embs (38, 80) conf >= 0.25
-            # dets_embs (82, 80), trk_embs (38, 80) conf < 0.25
-            stage1_emb_cost = dets_embs @ trk_embs.T # (34,512) @ (512,52)
-            
+            stage1_emb_cost = dets_embs @ trk_embs.T
+
         matched, unmatched_dets, unmatched_trks = associate(
             dets[:, 0:5],
             trks,
@@ -465,8 +464,8 @@ class DeepOCSort(BaseTracker):
             velocities,
             k_observations,
             self.inertia,
-            img.shape[1], # w
-            img.shape[0], # h
+            img.shape[1],  # w
+            img.shape[0],  # h
             stage1_emb_cost,
             self.w_association_emb,
             self.aw_off,
@@ -474,7 +473,8 @@ class DeepOCSort(BaseTracker):
         )
         for m in matched:
             self.active_tracks[m[1]].update(dets[m[0], :])
-            self.active_tracks[m[1]].update_emb(dets_embs[m[0]], alpha=dets_alpha[m[0]])
+            self.active_tracks[m[1]].update_emb(
+                dets_embs[m[0]], alpha=dets_alpha[m[0]])
 
         """
             Second round of associaton by OCR
@@ -501,15 +501,19 @@ class DeepOCSort(BaseTracker):
                 to_remove_det_indices = []
                 to_remove_trk_indices = []
                 for m in rematched_indices:
-                    det_ind, trk_ind = unmatched_dets[m[0]], unmatched_trks[m[1]]
+                    det_ind, trk_ind = unmatched_dets[m[0]
+                                                      ], unmatched_trks[m[1]]
                     if iou_left[m[0], m[1]] < self.iou_threshold:
                         continue
                     self.active_tracks[trk_ind].update(dets[det_ind, :])
-                    self.active_tracks[trk_ind].update_emb(dets_embs[det_ind], alpha=dets_alpha[det_ind])
+                    self.active_tracks[trk_ind].update_emb(
+                        dets_embs[det_ind], alpha=dets_alpha[det_ind])
                     to_remove_det_indices.append(det_ind)
                     to_remove_trk_indices.append(trk_ind)
-                unmatched_dets = np.setdiff1d(unmatched_dets, np.array(to_remove_det_indices))
-                unmatched_trks = np.setdiff1d(unmatched_trks, np.array(to_remove_trk_indices))
+                unmatched_dets = np.setdiff1d(
+                    unmatched_dets, np.array(to_remove_det_indices))
+                unmatched_trks = np.setdiff1d(
+                    unmatched_trks, np.array(to_remove_trk_indices))
 
         for m in unmatched_trks:
             self.active_tracks[m].update(None)
@@ -535,7 +539,6 @@ class DeepOCSort(BaseTracker):
                 we didn't notice significant difference here
                 """
                 d = trk.last_observation[:4]
-            
 
             '''
             # self.frame_count <= self.min_hits 
@@ -545,8 +548,9 @@ class DeepOCSort(BaseTracker):
             # if (trk.time_since_update < 1) and (trk.hit_streak >= self.min_hits or self.frame_count <= self.min_hits):
             if (trk.time_since_update < 1) and (trk.hit_streak >= self.min_hits):
                 # +1 as MOT benchmark requires positive
-                ret.append(np.concatenate((d, [trk.id], [trk.conf], [trk.cls], [trk.det_ind])).reshape(1, -1))
-       
+                ret.append(np.concatenate((d, [trk.id], [trk.conf], [
+                           trk.cls], [trk.det_ind])).reshape(1, -1))
+
             i -= 1
             # remove dead tracklet
             if trk.time_since_update > self.max_age:
