@@ -2,22 +2,21 @@
 
 import argparse
 import cv2
-import numpy as np
 from functools import partial
 from pathlib import Path
 
 import torch
-
+import os
 import sys
-sys.path.insert(0, '/media/hbai/data/code/LiteSORT')
-sys.path.insert(1, '/media/hbai/data/code/LiteSORT/yolo_tracking')
-# print('sys.path:', sys.path)
+
+sys.path.insert(0, os.getcwd())
+sys.path.insert(1, os.path.join(os.getcwd(), 'yolo_tracking'))
+
 
 from boxmot import TRACKERS
 from boxmot.tracker_zoo import create_tracker
 from boxmot.utils import ROOT, WEIGHTS, TRACKER_CONFIGS
 from boxmot.utils.checks import TestRequirements
-
 
 from tracking.detectors import get_yolo_inferer
 
@@ -25,9 +24,7 @@ __tr = TestRequirements()
 # __tr.check_packages(('ultralytics @ git+https://github.com/mikel-brostrom/ultralytics.git', ))  # install
 
 from ultralytics import YOLO
-#from ultralytics.utils.plotting import Annotator, colors
-#from ultralytics.data.utils import VID_FORMATS
-#from ultralytics.utils.plotting import save_one_box
+
 
 
 def on_predict_start(predictor, persist=False):
@@ -42,9 +39,9 @@ def on_predict_start(predictor, persist=False):
     assert predictor.custom_args.tracking_method in TRACKERS, \
         f"'{predictor.custom_args.tracking_method}' is not supported. Supported ones are {TRACKERS}"
 
-    # 
+    
     tracking_config = TRACKER_CONFIGS / (predictor.custom_args.tracking_method + '.yaml')
-    # print(f'\nUsing tracking config: {tracking_config}\n')
+
     trackers = []
     for i in range(predictor.dataset.bs):
         tracker = create_tracker(
@@ -182,6 +179,10 @@ def parse_opt():
                         help='class-agnostic NMS')
     parser.add_argument('--appearance-feature-layer', default=None, type=str, 
                         help='(For LITE paradigm) layer to extract appearance features from')
+    parser.add_argument('--split', type=str, required=True, choices=['train', 'test'], 
+                        help='Data split to process (train or test)')
+    parser.add_argument('--dataset', type=str, required=True, default='MOT17',
+            help='MOT17 or MOT20 or KITTI')
 
     opt = parser.parse_args()
     return opt
