@@ -34,7 +34,6 @@ def create_tracker(tracker_type, tracker_config, reid_weights, device, half, per
             nn_budget=cfg.nn_budget,
             mc_lambda=cfg.mc_lambda,
             ema_alpha=cfg.ema_alpha,
-
         )
         return strongsort
 
@@ -46,8 +45,8 @@ def create_tracker(tracker_type, tracker_config, reid_weights, device, half, per
             det_thresh=det_thresh,
             max_age=cfg.max_age,
             min_hits=cfg.min_hits,
-            # asso_threshold=cfg.iou_thresh,
-            asso_threshold=iou,
+            asso_threshold=cfg.iou_thresh,
+            # asso_threshold=iou,
             delta_t=cfg.delta_t,
             asso_func=cfg.asso_func,
             inertia=cfg.inertia,
@@ -76,7 +75,8 @@ def create_tracker(tracker_type, tracker_config, reid_weights, device, half, per
             per_class=per_class,
             track_high_thresh=cfg.track_high_thresh,
             track_low_thresh=cfg.track_low_thresh,
-            new_track_thresh=cfg.new_track_thresh,
+            # new_track_thresh=cfg.new_track_thresh,
+            new_track_thresh=det_thresh,
             track_buffer=cfg.track_buffer,
             match_thresh=cfg.match_thresh,
             proximity_thresh=cfg.proximity_thresh,
@@ -98,8 +98,8 @@ def create_tracker(tracker_type, tracker_config, reid_weights, device, half, per
             det_thresh=det_thresh,
             max_age=cfg.max_age,
             min_hits=cfg.min_hits,
-            # iou_threshold=cfg.iou_thresh,
-            iou_threshold=iou,
+            iou_threshold=cfg.iou_thresh,
+            # iou_threshold=iou,
             delta_t=cfg.delta_t,
             asso_func=cfg.asso_func,
             inertia=cfg.inertia,

@@ -107,9 +107,6 @@ def run(args):
         )
         yolo.predictor.model = model
 
-    # temporary iou pass as default of ocsort & deepocsort
-    args.iou = 0.3
-    
     # store custom args in predictor
     yolo.predictor.custom_args = args 
     

@@ -237,6 +237,10 @@ class BoTSORT(BaseTracker):
         self.cmc = SOF()
         self.fuse_first_associate = fuse_first_associate
 
+        # print all the arguments of self
+        for key, value in self.__dict__.items():
+            print(f'{key}: {value}')
+
     @PerClassDecorator
     def update(self, dets: np.ndarray, img: np.ndarray, embs: np.ndarray = None) -> np.ndarray:
         assert isinstance(

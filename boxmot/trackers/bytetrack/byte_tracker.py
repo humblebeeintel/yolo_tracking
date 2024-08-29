@@ -136,7 +136,7 @@ class BYTETracker(BaseTracker):
         self.track_buffer = track_buffer
 
         self.per_class = per_class
-        self.track_thresh = track_thresh
+        self.track_thresh = det_thresh
         self.match_thresh = match_thresh
         self.det_thresh = det_thresh 
         self.buffer_size = int(frame_rate / 30.0 * track_buffer)
