@@ -179,7 +179,9 @@ def parse_opt():
     parser.add_argument('--split', type=str, required=True, choices=['train', 'test'], 
                         help='Data split to process (train or test)')
     parser.add_argument('--dataset', type=str, required=True, default='MOT17',
-            help='MOT17 or MOT20 or KITTI')
+                        help='MOT17 or MOT20 or KITTI')
+    parser.add_argument('--sequence', type=str,
+                        help='Sequence to process for FPS')
 
     opt = parser.parse_args()
     return opt
