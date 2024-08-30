@@ -39,10 +39,6 @@ def process_sequence(seq_path, args, gpu_id=0):
     end_time = time.time()
     print(
         f'Finished processing sequence {seq_path} on {device} in {end_time - start_time:.2f} seconds', flush=True)
-    # calculate FPS
-    print(
-        f'len(os.listdir(os.path.join(args.project, seq_name))): {len(os.listdir(os.path.join(args.project, seq_name))):.2f}', flush=True)
-    print(f'FPS: {len(os.listdir(os.path.join(args.project, seq_name))) / (end_time - start_time):.2f}', flush=True)
 
 
 if __name__ == '__main__':
