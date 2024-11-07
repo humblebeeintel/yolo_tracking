@@ -211,7 +211,7 @@ class BoTSORT(BaseTracker):
         self.lost_stracks = []  # type: list[STrack]
         self.removed_stracks = []  # type: list[STrack]
         BaseTrack.clear_count()
-
+        self.det_thresh = track_low_thresh
         self.per_class = per_class
         self.track_high_thresh = track_high_thresh
         self.track_low_thresh = track_low_thresh
@@ -261,6 +261,8 @@ class BoTSORT(BaseTracker):
         refind_stracks = []
         lost_stracks = []
         removed_stracks = []
+
+        # print(f'conf(BoTSORT): {self.track_low_thresh}, {self.track_high_thresh}, {self.new_track_thresh}, {self.match_thresh}, {self.proximity_thresh}, {self.appearance_thresh}')
 
         dets = np.hstack([dets, np.arange(len(dets)).reshape(-1, 1)])
 
