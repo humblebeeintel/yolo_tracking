@@ -22,7 +22,6 @@ def process_sequence(seq_path, args, gpu_id=0):
 
     args.source = seq_path
     args.device = device
-    args.yolo_model = "yolov8m"
     args.classes = 0
     args.save_txt = True
     args.exist_ok = True
