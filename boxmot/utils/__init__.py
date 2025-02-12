@@ -37,8 +37,11 @@ class PerClassDecorator:
             args = list(args)
             dets = args[0]
             im = args[1]
-            embs = args[2]
-            
+            try:
+                embs = args[2]
+            except:
+                embs = None
+
             if instance.per_class is True:
 
                 # Initialize an array to store the tracks for each class
@@ -79,7 +82,7 @@ class PerClassDecorator:
                 tracks = np.vstack(per_class_tracks) if per_class_tracks else np.empty((0, 8))
             else:
                 # Process all detections at once if per_class is False or detections are empty
-                tracks = self.update(instance, dets, im,embs)
+                tracks = self.update(instance, dets, im, embs)
             
             return tracks
 

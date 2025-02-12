@@ -404,6 +404,7 @@ class DeepOCSort(BaseTracker):
         else:
             # (Ndets x ReID_DIM) [34 x 512]
             dets_embs = self.model.get_features(dets[:, 0:4], img)
+            
 
         # CMC
         if not self.cmc_off:

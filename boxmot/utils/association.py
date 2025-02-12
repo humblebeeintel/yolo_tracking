@@ -161,7 +161,7 @@ def associate(
             if emb_cost is None:
                 emb_cost = 0
             else:
-                emb_cost = emb_cost
+                emb_cost = emb_cost[:iou_matrix.shape[0], :iou_matrix.shape[1]]
                 emb_cost[iou_matrix <= 0] = 0
                 if not aw_off:
                     emb_cost = compute_aw_max_metric(emb_cost, w_assoc_emb, bottom=aw_param)
