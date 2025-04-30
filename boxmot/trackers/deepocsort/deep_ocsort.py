@@ -246,6 +246,7 @@ class KalmanBoxTracker(object):
         self.emb /= np.linalg.norm(self.emb)
 
     def get_emb(self):
+        # self.features.append(self.emb)
         return self.emb
 
     def apply_affine_correction(self, affine):
@@ -309,9 +310,9 @@ class KalmanBoxTracker(object):
 class DeepOCSort(BaseTracker):
     def __init__(
         self,
-        model_weights,
-        device,
-        fp16,
+        model_weights=None,
+        device='cuda:0',
+        fp16=False,
         per_class=False,
         det_thresh=0.3,
         max_age=30,
@@ -327,7 +328,7 @@ class DeepOCSort(BaseTracker):
         cmc_off=True,
         aw_off=False,
         new_kf_off=False,
-        appearance_feature_layer=None,
+        custom_features=False,
         **kwargs
     ):
         super().__init__(max_age=max_age)
@@ -345,13 +346,16 @@ class DeepOCSort(BaseTracker):
         self.alpha_fixed_emb = alpha_fixed_emb
         self.aw_param = aw_param
         self.per_class = per_class
-        self.appearance_feature_layer = appearance_feature_layer
+        self.custom_features = custom_features
         KalmanBoxTracker.count = 1
 
-        if self.appearance_feature_layer is None:
+        if not self.custom_features:
+            assert model_weights is not None, "Model weights must be provided for custom features"
+
             rab = ReidAutoBackend(
                 weights=model_weights, device=device, half=fp16
             )
+
             self.model = rab.get_backend()
 
         # "similarity transforms using feature point extraction, optical flow, and RANSAC"
@@ -360,6 +364,7 @@ class DeepOCSort(BaseTracker):
         self.cmc_off = cmc_off
         self.aw_off = aw_off
         self.new_kf_off = new_kf_off
+        self.removed_tracks = []
 
         # print all the arguments of self
         for key, value in self.__dict__.items():
@@ -403,7 +408,9 @@ class DeepOCSort(BaseTracker):
             dets_embs = embs
         else:
             # (Ndets x ReID_DIM) [34 x 512]
-            dets_embs = self.model.get_features(dets[:, 0:4], img)
+            # dets_embs = self.model.get_features(dets[:, 0:4], img)
+            # Generate with 0 if no embedding
+            dets_embs = np.ones((dets.shape[0], 1))
             
 
         # CMC
@@ -556,6 +563,8 @@ class DeepOCSort(BaseTracker):
             # remove dead tracklet
             if trk.time_since_update > self.max_age:
                 self.active_tracks.pop(i)
+                self.removed_tracks.append(trk.id)
+                
         if len(ret) > 0:
             return np.concatenate(ret)
         return np.array([])
