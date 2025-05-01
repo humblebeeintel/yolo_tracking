@@ -366,10 +366,6 @@ class DeepOCSort(BaseTracker):
         self.new_kf_off = new_kf_off
         self.removed_tracks = []
 
-        # print all the arguments of self
-        for key, value in self.__dict__.items():
-            print(f'{key}: {value}')
-
     @PerClassDecorator
     def update(self, dets: np.ndarray, img: np.ndarray, embs: np.ndarray = None) -> np.ndarray:
         """
@@ -389,6 +385,14 @@ class DeepOCSort(BaseTracker):
         assert len(
             dets.shape) == 2, "Unsupported 'dets' dimensions, valid number of dimensions is two"
         assert dets.shape[1] == 6, "Unsupported 'dets' 2nd dimension lenght, valid lenghts is 6"
+
+        # if dets.shape[0] == 0:
+        #     # No detections, just update the trackers
+        #     for trk in self.active_tracks:
+        #         trk.time_since_update += 1
+            
+        #         if trk.time_since_update > self.max_age:
+        #             self.removed_tracks.append(trk.id)
 
         self.frame_count += 1
         self.height, self.width = img.shape[:2]
