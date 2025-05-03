@@ -386,13 +386,13 @@ class DeepOCSort(BaseTracker):
             dets.shape) == 2, "Unsupported 'dets' dimensions, valid number of dimensions is two"
         assert dets.shape[1] == 6, "Unsupported 'dets' 2nd dimension lenght, valid lenghts is 6"
 
-        # if dets.shape[0] == 0:
-        #     # No detections, just update the trackers
-        #     for trk in self.active_tracks:
-        #         trk.time_since_update += 1
+        if dets.shape[0] == 0:
+            # No detections, just update the trackers
+            for trk in self.active_tracks:
+                trk.time_since_update += 1
             
-        #         if trk.time_since_update > self.max_age:
-        #             self.removed_tracks.append(trk.id)
+                if trk.time_since_update > self.max_age:
+                    self.removed_tracks.append(trk.id)
 
         self.frame_count += 1
         self.height, self.width = img.shape[:2]
