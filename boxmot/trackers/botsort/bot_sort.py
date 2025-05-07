@@ -190,9 +190,9 @@ class STrack(BaseTrack):
 class BoTSORT(BaseTracker):
     def __init__(
         self,
-        model_weights,
-        device,
-        fp16,
+        model_weights=None,
+        device='cuda:0',
+        fp16=False,
         per_class=False,
         track_high_thresh: float = 0.5,
         track_low_thresh: float = 0.1,
@@ -205,7 +205,7 @@ class BoTSORT(BaseTracker):
         frame_rate=30,
         fuse_first_associate: bool = False,
         with_reid: bool = True,
-        appearance_feature_layer: str = None,
+        custom_features: str = None,
     ):
         super().__init__()
         self.lost_stracks = []  # type: list[STrack]
@@ -226,9 +226,9 @@ class BoTSORT(BaseTracker):
         self.appearance_thresh = appearance_thresh
 
         self.with_reid = with_reid
-        self.appearance_feature_layer = appearance_feature_layer
+        self.custom_features = custom_features
 
-        if self.with_reid and (self.appearance_feature_layer is None):
+        if self.with_reid and (self.custom_features is None):
             rab = ReidAutoBackend(
                 weights=model_weights, device=device, half=fp16
             )
@@ -238,8 +238,8 @@ class BoTSORT(BaseTracker):
         self.fuse_first_associate = fuse_first_associate
 
         # print all the arguments of self
-        for key, value in self.__dict__.items():
-            print(f'{key}: {value}')
+        # for key, value in self.__dict__.items():
+        #     print(f'{key}: {value}')
 
     @PerClassDecorator
     def update(self, dets: np.ndarray, img: np.ndarray, embs: np.ndarray = None) -> np.ndarray:
@@ -448,6 +448,7 @@ class BoTSORT(BaseTracker):
             outputs.append(output)
 
         outputs = np.asarray(outputs)
+
         return outputs
 
 
