@@ -52,8 +52,6 @@ ultralytics = {git = "https://github.com/mikel-brostrom/ultralytics.git"}
 
 
 [tool.poetry.group.export.dependencies]
-onnx = "^1.15.0"
-onnxsim = "^0.4.36"
 openvino-dev = ">=2023.3,<2025.0"
 
 
